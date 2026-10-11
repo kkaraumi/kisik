@@ -9,7 +9,7 @@ def next_picture():
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
             client_socket.settimeout(2)
-            client_socket.connect((ip, 5050))дальше
+            client_socket.connect((ip, 5050))
             client_socket.sendall("next".encode())
     except OSError:
         print("сервер недоступен")
