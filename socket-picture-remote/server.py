@@ -35,6 +35,7 @@ def update_picture():
 
 
 root = tk.Tk()
+root.title("Сервер")
 picture_label = tk.Label(root)
 picture_label.pack()
 server_thread = threading.Thread(target=run_server, daemon=True)
