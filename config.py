@@ -1,5 +1,5 @@
 APP_TITLE = "Морской бой"
-APP_VERSION = "v1.0.0"
+APP_VERSION = "v1.1.0"
 
 GAME_PORT = 5050
 DISCOVERY_PORT = 5051
