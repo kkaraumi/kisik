@@ -10,6 +10,7 @@ from config import (
     CONNECT_TIMEOUT,
     CORNER_RADIUS,
     GAME_PORT,
+    GREEN_COLOR,
     MENU_HEIGHT,
     MENU_WIDTH,
     MUTED_TEXT_COLOR,
@@ -22,7 +23,7 @@ from config import (
     TITLE_FONT,
     YELLOW_COLOR,
 )
-from discovery import find_server
+from discovery import find_servers
 from network import close_connection, prepare_connection
 from ui import make_button, open_screen, set_status, show_game
 
@@ -36,16 +37,23 @@ def connect_to_server(ip):
     return connection
 
 
-def search_and_connect(results):
-    ip = find_server(SEARCH_TIMEOUT)
-    connection = None
-    if ip is not None:
-        connection = connect_to_server(ip)
-    results.put((ip, connection))
+def search_servers(results):
+    results.put(find_servers(SEARCH_TIMEOUT))
 
 
 def connect_by_ip(ip, results):
     results.put((ip, connect_to_server(ip)))
+
+
+def make_bottom_buttons(root, frame, go_back):
+    buttons = ctk.CTkFrame(frame, fg_color="transparent")
+    buttons.pack()
+    search_button = make_button(buttons, "Искать снова", lambda: show_client_screen(root, go_back), primary=False)
+    search_button.pack(side="left", padx=PADDING // 2)
+    manual_button = make_button(buttons, "Ввести IP вручную", lambda: show_manual_screen(root, go_back))
+    manual_button.pack(side="left", padx=PADDING // 2)
+    back_button = make_button(buttons, "Назад", go_back, primary=False)
+    back_button.pack(side="left", padx=PADDING // 2)
 
 
 def show_client_screen(root, go_back):
@@ -63,16 +71,43 @@ def show_client_screen(root, go_back):
         text_color=MUTED_TEXT_COLOR,
     )
     hint.pack()
-    buttons = ctk.CTkFrame(frame, fg_color="transparent")
-    buttons.pack()
-    manual_button = make_button(buttons, "Ввести IP вручную", lambda: show_manual_screen(root, go_back))
-    manual_button.pack(side="left", padx=PADDING // 2)
-    back_button = make_button(buttons, "Назад", go_back, primary=False)
-    back_button.pack(side="left", padx=PADDING // 2)
-    set_status(status, "Ищу сервер…", YELLOW_COLOR)
+    make_bottom_buttons(root, frame, go_back)
+    set_status(status, "Ищу игры в сети…", YELLOW_COLOR)
     results = queue.Queue()
-    threading.Thread(target=search_and_connect, args=(results,), daemon=True).start()
-    check_connection(root, status, results, go_back)
+    threading.Thread(target=search_servers, args=(results,), daemon=True).start()
+    check_search(root, status, results, go_back)
+
+
+def check_search(root, status, results, go_back):
+    if results.empty():
+        root.after(POLL_INTERVAL, check_search, root, status, results, go_back)
+        return
+    servers = results.get()
+    if not status.winfo_exists():
+        return
+    if servers:
+        show_server_list(root, servers, go_back)
+    else:
+        set_status(status, "Сервер не найден", RED_COLOR)
+
+
+def show_server_list(root, servers, go_back):
+    frame = open_screen(root, APP_TITLE + " — клиент", MENU_WIDTH, MENU_HEIGHT)
+    title = ctk.CTkLabel(frame, text="Найденные игры", font=TITLE_FONT, text_color=TEXT_COLOR)
+    title.pack()
+    status = ctk.CTkLabel(frame, text="", font=TEXT_FONT)
+    status.pack()
+    set_status(status, "Найдено игр: " + str(len(servers)) + ". Выберите свою", GREEN_COLOR)
+    server_list = ctk.CTkScrollableFrame(frame, fg_color=CARD_COLOR, corner_radius=CORNER_RADIUS)
+    server_list.pack(fill="both", expand=True, pady=PADDING)
+    for ip, name in sorted(servers.items()):
+        make_server_button(root, server_list, ip, name, status, go_back)
+    make_bottom_buttons(root, frame, go_back)
+
+
+def make_server_button(root, parent, ip, name, status, go_back):
+    button = make_button(parent, name + "   •   " + ip, lambda: start_connect(root, ip, status, go_back))
+    button.pack(fill="x", padx=PADDING // 2, pady=6)
 
 
 def show_manual_screen(root, go_back):
@@ -118,6 +153,10 @@ def start_manual_connect(root, entry, status, go_back):
     if not ip:
         set_status(status, "Введите IP-адрес сервера", RED_COLOR)
         return
+    start_connect(root, ip, status, go_back)
+
+
+def start_connect(root, ip, status, go_back):
     set_status(status, "Подключаюсь к " + ip + "…", YELLOW_COLOR)
     results = queue.Queue()
     threading.Thread(target=connect_by_ip, args=(ip, results), daemon=True).start()
@@ -133,9 +172,7 @@ def check_connection(root, status, results, go_back):
         if connection is not None:
             close_connection(connection)
         return
-    if ip is None:
-        set_status(status, "Сервер не найден", RED_COLOR)
-    elif connection is None:
+    if connection is None:
         set_status(status, "Не удалось подключиться к " + ip, RED_COLOR)
     else:
         show_game(root, connection, False, go_back)

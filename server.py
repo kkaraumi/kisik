@@ -19,7 +19,7 @@ from config import (
     TITLE_FONT,
     YELLOW_COLOR,
 )
-from discovery import broadcast_until
+from discovery import broadcast_until, get_computer_name
 from network import prepare_connection
 from ui import make_button, open_screen, set_status, show_game
 
@@ -53,12 +53,19 @@ def show_server_screen(root, go_back):
     card = ctk.CTkFrame(frame, fg_color=CARD_COLOR, corner_radius=CORNER_RADIUS)
     card.pack(fill="both", expand=True, pady=PADDING)
     status = ctk.CTkLabel(card, text="", font=TEXT_FONT)
-    status.pack(pady=(40, 10))
+    status.pack(pady=(30, 10))
     ip_label = ctk.CTkLabel(card, text="Ваш IP: " + get_local_ip(), font=TITLE_FONT, text_color=TEXT_COLOR)
     ip_label.pack()
+    name_label = ctk.CTkLabel(
+        card,
+        text="Имя компьютера: " + get_computer_name(),
+        font=TEXT_FONT,
+        text_color=TEXT_COLOR,
+    )
+    name_label.pack(pady=(4, 0))
     hint = ctk.CTkLabel(
         card,
-        text="Соперник нажимает «Клиент» и подключится сам",
+        text="Соперник нажимает «Клиент» и выбирает эту игру в списке",
         font=TEXT_FONT,
         text_color=MUTED_TEXT_COLOR,
     )
