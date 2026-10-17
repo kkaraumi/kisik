@@ -8,6 +8,13 @@ def prepare_connection(connection):
     connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
 
+def get_peer_ip(connection):
+    try:
+        return connection.getpeername()[0]
+    except OSError:
+        return "неизвестно"
+
+
 def send_line(connection, line):
     try:
         connection.sendall((line + "\n").encode())

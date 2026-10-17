@@ -30,7 +30,7 @@ from config import (
     YELLOW_COLOR,
 )
 from game import Board
-from network import close_connection, send_line, start_receiving
+from network import close_connection, get_peer_ip, send_line, start_receiving
 
 
 def get_scaling(root):
@@ -111,7 +111,7 @@ def make_top_bar(game, frame):
     game["info"].pack(anchor="w")
     game["connection_label"] = ctk.CTkLabel(top, text="", font=TEXT_FONT)
     game["connection_label"].pack(side="right", anchor="n")
-    set_status(game["connection_label"], "Подключено", GREEN_COLOR)
+    set_status(game["connection_label"], "Соперник: " + get_peer_ip(game["connection"]), GREEN_COLOR)
 
 
 def make_boards(game, frame):
