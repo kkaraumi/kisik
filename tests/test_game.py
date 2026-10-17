@@ -36,6 +36,16 @@ class BoardTest(unittest.TestCase):
                     self.assertTrue(0 <= x < BOARD_SIZE)
                     self.assertTrue(0 <= y < BOARD_SIZE)
 
+    def test_ships_do_not_touch(self):
+        for _ in range(200):
+            board = Board()
+            for ship in board.ships:
+                others = {cell for other in board.ships if other is not ship for cell in other}
+                for x, y in ship:
+                    for dx in [-1, 0, 1]:
+                        for dy in [-1, 0, 1]:
+                            self.assertNotIn((x + dx, y + dy), others)
+
     def test_place_again_clears_shots(self):
         board = Board()
         board.receive_shot(0, 0)
