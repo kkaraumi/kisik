@@ -36,8 +36,8 @@ def show_role_screen(root):
     cards.pack(fill="both", expand=True, pady=PADDING)
     cards.rowconfigure(0, weight=1)
     cards.columnconfigure((0, 1), weight=1, uniform="card")
-    make_role_card(cards, 0, "Сервер", "Создаёт игру и ждёт соперника", lambda: start_server(root))
-    make_role_card(cards, 1, "Клиент", "Ищет игру в сети", lambda: start_client(root))
+    make_role_card(cards, 0, "Сервер", "Создаёт новую игру", lambda: start_server(root))
+    make_role_card(cards, 1, "Клиент", "Ищет игры в сети", lambda: start_client(root))
     version = ctk.CTkLabel(frame, text=APP_VERSION, font=LABEL_FONT, text_color=MUTED_TEXT_COLOR)
     version.pack()
 
