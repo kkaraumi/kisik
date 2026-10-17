@@ -1,7 +1,7 @@
 import unittest
 
 from config import BOARD_SIZE, SHIP_SIZES
-from game import Board
+from game import Board, cells_around, find_connected
 
 
 def make_board(ships):
@@ -87,6 +87,35 @@ class BoardTest(unittest.TestCase):
         self.assertTrue(board.was_shot(0, 0))
         self.assertEqual(board.receive_shot(0, 0), "miss")
         self.assertEqual(len(board.shots), 1)
+
+
+class SunkShipTest(unittest.TestCase):
+    def test_cells_around_ship_in_middle(self):
+        around = cells_around([(4, 4), (5, 4)])
+        self.assertEqual(len(around), 10)
+        self.assertIn((3, 3), around)
+        self.assertIn((6, 5), around)
+        self.assertNotIn((4, 4), around)
+
+    def test_cells_around_ship_in_corner(self):
+        around = cells_around([(0, 0)])
+        self.assertEqual(around, {(1, 0), (0, 1), (1, 1)})
+
+    def test_find_connected_takes_only_one_ship(self):
+        hits = {(2, 2), (3, 2), (4, 2), (7, 7)}
+        self.assertEqual(find_connected(hits, (3, 2)), {(2, 2), (3, 2), (4, 2)})
+        self.assertEqual(find_connected(hits, (7, 7)), {(7, 7)})
+
+    def test_find_connected_ignores_diagonal(self):
+        hits = {(1, 1), (2, 2)}
+        self.assertEqual(find_connected(hits, (1, 1)), {(1, 1)})
+
+    def test_sunk_cells(self):
+        board = make_board([[(0, 0), (1, 0)], [(5, 5)]])
+        board.receive_shot(0, 0)
+        self.assertEqual(board.sunk_cells(), set())
+        board.receive_shot(1, 0)
+        self.assertEqual(board.sunk_cells(), {(0, 0), (1, 0)})
 
 
 if __name__ == "__main__":

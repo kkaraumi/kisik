@@ -7,6 +7,15 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-17
+
+### Added
+
+- Потопленный корабль подсвечивается тёмно-красным на обоих полях.
+- Клетки вокруг потопленного корабля автоматически отмечаются на поле соперника,
+  чтобы не стрелять туда зря.
+- Тесты поиска потопленного корабля и клеток вокруг него.
+
 ## [1.1.0] - 2026-10-17
 
 ### Added
@@ -45,6 +54,7 @@
 
 - Старая версия проекта: смена картинки по кнопке (`server.py`, `client.py`, папка `pictures`).
 
-[Unreleased]: https://github.com/kkaraumi/kisik/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/kkaraumi/kisik/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/kkaraumi/kisik/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/kkaraumi/kisik/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/kkaraumi/kisik/releases/tag/v1.0.0
