@@ -24,12 +24,13 @@ from config import (
     PADDING,
     POLL_INTERVAL,
     RED_COLOR,
+    SUNK_COLOR,
     TEXT_COLOR,
     TEXT_FONT,
     TITLE_FONT,
     YELLOW_COLOR,
 )
-from game import Board
+from game import Board, cells_around, find_connected
 from network import close_connection, get_peer_ip, send_line, start_receiving
 
 
@@ -157,6 +158,8 @@ def own_states(board):
         states[cell] = "ship"
     for x, y in board.shots:
         states[(x, y)] = "hit" if board.has_ship(x, y) else "miss"
+    for cell in board.sunk_cells():
+        states[cell] = "sunk"
     return states
 
 
@@ -190,6 +193,9 @@ def draw_cell(game, canvas, x, y, state):
         draw_square(canvas, left, top, cell, ACCENT_COLOR)
     elif state == "hit":
         draw_square(canvas, left, top, cell, RED_COLOR)
+        draw_cross(canvas, left, top, cell)
+    elif state == "sunk":
+        draw_square(canvas, left, top, cell, SUNK_COLOR)
         draw_cross(canvas, left, top, cell)
     elif state == "miss":
         draw_dot(canvas, left, top, cell)
@@ -307,6 +313,8 @@ def handle_result(game, result):
         return
     x, y = game["last_shot"]
     game["enemy_marks"][(x, y)] = "miss" if result == "miss" else "hit"
+    if result in ["sunk", "win"]:
+        mark_sunk_ship(game, x, y)
     redraw(game)
     if result == "win":
         finish_game(game, "Победа!", GREEN_COLOR, "Вы потопили все корабли соперника")
@@ -318,7 +326,18 @@ def handle_result(game, result):
         update_turn(game, cell_name(x, y) + ": попадание! Стреляйте ещё")
     else:
         game["turn"] = "mine"
-        update_turn(game, cell_name(x, y) + ": корабль потоплен! Стреляйте ещё")
+        update_turn(game, cell_name(x, y) + ": корабль потоплен! Клетки вокруг отмечены, стреляйте ещё")
+
+
+def mark_sunk_ship(game, x, y):
+    marks = game["enemy_marks"]
+    hits = {cell for cell, state in marks.items() if state == "hit"}
+    ship = find_connected(hits, (x, y))
+    for cell in ship:
+        marks[cell] = "sunk"
+    for cell in cells_around(ship):
+        if cell not in marks:
+            marks[cell] = "miss"
 
 
 def cell_name(x, y):
