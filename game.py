@@ -2,6 +2,8 @@ import random
 
 from config import BOARD_SIZE, SHIP_SIZES
 
+MAX_ATTEMPTS = 100
+
 
 class Board:
     def __init__(self):
@@ -10,20 +12,37 @@ class Board:
         self.place_ships_randomly()
 
     def place_ships_randomly(self):
+        while not self.try_place_ships():
+            pass
+
+    def try_place_ships(self):
         self.ships = []
         self.shots = set()
         for size in SHIP_SIZES:
-            self.ships.append(self.make_free_ship(size))
+            ship = self.find_free_place(size)
+            if ship is None:
+                return False
+            self.ships.append(ship)
+        return True
 
-    def make_free_ship(self, size):
-        while True:
+    def find_free_place(self, size):
+        for _ in range(MAX_ATTEMPTS):
             ship = make_random_ship(size)
-            if not self.overlaps(ship):
+            if not self.is_too_close(ship):
                 return ship
+        return None
 
-    def overlaps(self, ship):
-        taken = self.ship_cells()
-        return any(cell in taken for cell in ship)
+    def is_too_close(self, ship):
+        blocked = self.blocked_cells()
+        return any(cell in blocked for cell in ship)
+
+    def blocked_cells(self):
+        blocked = set()
+        for x, y in self.ship_cells():
+            for dx in [-1, 0, 1]:
+                for dy in [-1, 0, 1]:
+                    blocked.add((x + dx, y + dy))
+        return blocked
 
     def ship_cells(self):
         return {cell for ship in self.ships for cell in ship}
